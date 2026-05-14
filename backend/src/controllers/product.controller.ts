@@ -176,6 +176,15 @@ export async function getStatus(_req: Request, res: Response, next: NextFunction
   }
 }
 
+export async function resetQueue(_req: Request, res: Response, next: NextFunction) {
+  try {
+    queueService.setProducts([]);
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function checkCloudinaryImage(req: Request, res: Response, next: NextFunction) {
   try {
     const code = String(req.query.code || "").trim();

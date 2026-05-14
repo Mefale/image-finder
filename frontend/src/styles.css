@@ -29,10 +29,28 @@ body {
 }
 
 .progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 8px 14px;
   background: #ffffff;
   border-radius: 10px;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.reset-btn {
+  border: none;
+  background: #dc2626;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.reset-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .message {

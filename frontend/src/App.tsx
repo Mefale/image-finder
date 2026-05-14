@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { approveImage, fetchCloudinaryImage, fetchImages, fetchNextProduct, goToPrevious, importDefault, skipProduct } from "./api";
+import { approveImage, fetchCloudinaryImage, fetchImages, fetchNextProduct, goToPrevious, importDefault, resetQueue, skipProduct } from "./api";
 import { Product } from "./types";
 
 export function App() {
@@ -128,6 +128,29 @@ export function App() {
           <span>
             Producto {progress.index} / {progress.total}
           </span>
+          {progress.total > 0 && (
+            <button
+              className="reset-btn"
+              disabled={loading}
+              onClick={async () => {
+                if (!confirm("¿Resetear la cola? Se pierden todos los productos cargados.")) return;
+                setLoading(true);
+                try {
+                  await resetQueue();
+                  setProduct(null);
+                  setImages([]);
+                  setCloudinaryUrl(null);
+                  setProgress({ index: 0, total: 0 });
+                } catch {
+                  setMessage("Error al resetear");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              Resetear
+            </button>
+          )}
         </div>
       </header>
 

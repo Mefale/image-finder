@@ -52,6 +52,12 @@ export async function goToPrevious() {
   return res.json() as Promise<{ current: Product | null; index: number; total: number }>;
 }
 
+export async function resetQueue() {
+  const res = await fetch(`${API_BASE}/products/reset`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to reset queue");
+  return res.json() as Promise<{ ok: boolean }>;
+}
+
 export async function fetchCloudinaryImage(code: string): Promise<string | null> {
   const res = await fetch(`${API_BASE}/products/cloudinary-image?code=${encodeURIComponent(code)}`);
   if (!res.ok) {

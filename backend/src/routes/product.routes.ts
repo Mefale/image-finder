@@ -12,6 +12,7 @@ import {
   goToPrevious,
   importDefaultProducts,
   importProducts,
+  resetQueue,
   skipProduct,
   uploadExcel
 } from "../controllers/product.controller";
@@ -43,3 +44,4 @@ productRouter.post("/skip", skipProduct);
 productRouter.post("/previous", goToPrevious);
 productRouter.get("/status", getStatus);
 productRouter.get("/cloudinary-image", checkCloudinaryImage);
+productRouter.post("/reset", resetQueue);
