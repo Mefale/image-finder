@@ -79,6 +79,24 @@ body {
   font-weight: 600;
 }
 
+.cloudinary-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+}
+
+.cloudinary-status {
+  font-size: 14px;
+  font-weight: 400;
+  color: #8a97a6;
+}
+
+.cloudinary-empty {
+  color: #b91c1c;
+}
+
 .actions {
   display: flex;
   gap: 12px;

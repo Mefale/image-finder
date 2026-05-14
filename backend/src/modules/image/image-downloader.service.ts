@@ -43,6 +43,17 @@ export class ImageDownloaderService {
     return `https://res.cloudinary.com/${cloud}/image/upload/mefale/products/${sku}.jpg`;
   }
 
+  async getCloudinaryImageUrl(code: string): Promise<string | null> {
+    const safeCode = sanitizeFileName(code);
+    const fullPublicId = `mefale/products/${safeCode}`;
+    this.ensureCloudinaryConfig();
+    const resource = await cloudinary.api.resource(fullPublicId).catch(() => null);
+    if (!resource) {
+      return null;
+    }
+    return (resource.secure_url as string) || this.getImageUrl(safeCode);
+  }
+
   async deleteImage(code: string): Promise<void> {
     const safeCode = sanitizeFileName(code);
     const fullPublicId = `mefale/products/${safeCode}`;

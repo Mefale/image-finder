@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { approveImage, fetchImages, fetchNextProduct, goToPrevious, importDefault, skipProduct } from "./api";
+import { approveImage, fetchCloudinaryImage, fetchImages, fetchNextProduct, goToPrevious, importDefault, skipProduct } from "./api";
 import { Product } from "./types";
 
 export function App() {
@@ -9,6 +9,7 @@ export function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [progress, setProgress] = useState({ index: 0, total: 0 });
+  const [cloudinaryUrl, setCloudinaryUrl] = useState<string | null | "loading">("loading");
 
   const loadNext = async () => {
     setLoading(true);
@@ -18,11 +19,17 @@ export function App() {
       setProduct(next.current);
       setProgress({ index: next.index + 1, total: next.total });
       if (next.current) {
-        const result = await fetchImages(12);
+        setCloudinaryUrl("loading");
+        const [result, cloudUrl] = await Promise.all([
+          fetchImages(12),
+          fetchCloudinaryImage(next.current.code)
+        ]);
         setImages(result.images);
         setSelected(0);
+        setCloudinaryUrl(cloudUrl);
       } else {
         setImages([]);
+        setCloudinaryUrl(null);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error";
@@ -76,9 +83,14 @@ export function App() {
       setProduct(result.current);
       setProgress({ index: result.index + 1, total: result.total });
       if (result.current) {
-        const imgs = await fetchImages(12);
+        setCloudinaryUrl("loading");
+        const [imgs, cloudUrl] = await Promise.all([
+          fetchImages(12),
+          fetchCloudinaryImage(result.current.code)
+        ]);
         setImages(imgs.images);
         setSelected(0);
+        setCloudinaryUrl(cloudUrl);
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error");
@@ -148,6 +160,14 @@ export function App() {
             <div className="value">{product.code}</div>
             <div className="label">Nombre</div>
             <div className="value">{product.name}</div>
+            <div className="label">Imagen actual</div>
+            <div className="value">
+              {cloudinaryUrl === "loading" && <span className="cloudinary-status">Buscando...</span>}
+              {cloudinaryUrl === null && <span className="cloudinary-status cloudinary-empty">No hay imagen en Cloudinary</span>}
+              {cloudinaryUrl && cloudinaryUrl !== "loading" && (
+                <img className="cloudinary-preview" src={cloudinaryUrl} alt="Imagen actual en Cloudinary" />
+              )}
+            </div>
           </div>
 
           <div className="actions">

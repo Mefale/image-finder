@@ -5,6 +5,7 @@ import { paths } from "../config/paths";
 import { ensureDir } from "../utils/file.util";
 import {
   approveImage,
+  checkCloudinaryImage,
   getImages,
   getNextProduct,
   getStatus,
@@ -41,3 +42,4 @@ productRouter.post("/approve", approveImage);
 productRouter.post("/skip", skipProduct);
 productRouter.post("/previous", goToPrevious);
 productRouter.get("/status", getStatus);
+productRouter.get("/cloudinary-image", checkCloudinaryImage);

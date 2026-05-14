@@ -51,3 +51,12 @@ export async function goToPrevious() {
   }
   return res.json() as Promise<{ current: Product | null; index: number; total: number }>;
 }
+
+export async function fetchCloudinaryImage(code: string): Promise<string | null> {
+  const res = await fetch(`${API_BASE}/products/cloudinary-image?code=${encodeURIComponent(code)}`);
+  if (!res.ok) {
+    return null;
+  }
+  const data = await res.json() as { url: string | null };
+  return data.url;
+}

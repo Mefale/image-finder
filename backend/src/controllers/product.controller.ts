@@ -175,3 +175,17 @@ export async function getStatus(_req: Request, res: Response, next: NextFunction
     next(error);
   }
 }
+
+export async function checkCloudinaryImage(req: Request, res: Response, next: NextFunction) {
+  try {
+    const code = String(req.query.code || "").trim();
+    if (!code) {
+      res.status(400).json({ error: "Missing code" });
+      return;
+    }
+    const url = await imageDownloaderService.getCloudinaryImageUrl(code);
+    res.json({ url });
+  } catch (error) {
+    next(error);
+  }
+}
