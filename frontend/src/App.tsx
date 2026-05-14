@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { approveImage, fetchCloudinaryImage, fetchImages, fetchNextProduct, goToPrevious, importDefault, resetQueue, skipProduct } from "./api";
 import { Product } from "./types";
 
@@ -118,7 +119,9 @@ export function App() {
   };
 
   return (
-    <div className="page">
+    <>
+      <Analytics />
+      <div className="page">
       <header className="header">
         <div>
           <h1>Image Finder</h1>
@@ -224,6 +227,7 @@ export function App() {
           </button>
         ))}
       </section>
-    </div>
+      </div>
+    </>
   );
 }
