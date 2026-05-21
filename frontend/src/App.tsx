@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
-import { approveImage, fetchCloudinaryImage, fetchImages, fetchNextProduct, goToPrevious, importDefault, resetQueue, skipProduct } from "./api";
+import { approveImage, fetchCloudinaryImage, fetchImages, fetchNextProduct, goToPrevious, gotoProduct, importDefault, resetQueue, skipProduct } from "./api";
 import { Product } from "./types";
 
 export function App() {
@@ -11,6 +11,8 @@ export function App() {
   const [message, setMessage] = useState<string | null>(null);
   const [progress, setProgress] = useState({ index: 0, total: 0 });
   const [cloudinaryUrl, setCloudinaryUrl] = useState<string | null | "loading">("loading");
+  const [gotoInput, setGotoInput] = useState("");
+  const [tooSmall, setTooSmall] = useState<Set<string>>(new Set());
 
   const loadNext = async () => {
     setLoading(true);
@@ -25,7 +27,7 @@ export function App() {
           fetchImages(20),
           fetchCloudinaryImage(next.current.code)
         ]);
-        setImages(result.images);
+        setImages(result.images); setTooSmall(new Set());
         setSelected(0);
         setCloudinaryUrl(cloudUrl);
       } else {
@@ -89,7 +91,7 @@ export function App() {
           fetchImages(20),
           fetchCloudinaryImage(result.current.code)
         ]);
-        setImages(imgs.images);
+        setImages(imgs.images); setTooSmall(new Set());
         setSelected(0);
         setCloudinaryUrl(cloudUrl);
       }
@@ -108,7 +110,7 @@ export function App() {
     setMessage(null);
     try {
       const result = await fetchImages(20);
-      setImages(result.images);
+      setImages(result.images); setTooSmall(new Set());
       setSelected(0);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error";
@@ -141,6 +143,53 @@ export function App() {
               <div className="progress-bar" aria-hidden="true">
                 <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
               </div>
+              <form
+                className="goto-form"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const num = parseInt(gotoInput, 10);
+                  if (isNaN(num) || num < 1 || num > progress.total) {
+                    setMessage(`Ingresá un número entre 1 y ${progress.total}`);
+                    return;
+                  }
+                  setLoading(true);
+                  setMessage(null);
+                  try {
+                    const result = await gotoProduct(num - 1);
+                    setProduct(result.current);
+                    setProgress({ index: result.index + 1, total: result.total });
+                    setGotoInput("");
+                    if (result.current) {
+                      setCloudinaryUrl("loading");
+                      const [imgs, cloudUrl] = await Promise.all([
+                        fetchImages(12),
+                        fetchCloudinaryImage(result.current.code)
+                      ]);
+                      setImages(imgs.images); setTooSmall(new Set());
+                      setSelected(0);
+                      setCloudinaryUrl(cloudUrl);
+                    }
+                  } catch (error) {
+                    setMessage(error instanceof Error ? error.message : "Error");
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
+                <input
+                  className="goto-input"
+                  type="number"
+                  min={1}
+                  max={progress.total}
+                  placeholder="Ir a #"
+                  value={gotoInput}
+                  onChange={(e) => setGotoInput(e.target.value)}
+                  disabled={loading}
+                />
+                <button className="btn btn-ghost btn-sm" type="submit" disabled={loading}>
+                  Ir
+                </button>
+              </form>
               <button
                 className="btn btn-ghost btn-sm btn-danger"
                 disabled={loading}
@@ -235,19 +284,33 @@ export function App() {
                   <span className="gallery-meta">{images.length} resultados</span>
                 </div>
                 <div className="gallery">
-                  {images.map((url, index) => (
+                  {images.map((url, index) => {
+                    if (tooSmall.has(url)) return null;
+                    return (
                     <button
                       key={`${url}-${index}`}
                       className={index === selected ? "thumb selected" : "thumb"}
                       onClick={() => setSelected(index)}
                       type="button"
                     >
-                      <img src={url} alt="Resultado" loading="lazy" />
+                      <img
+                        src={url}
+                        alt="Resultado"
+                        loading="lazy"
+                        onLoad={(e) => {
+                          const img = e.currentTarget;
+                          if (Math.max(img.naturalWidth, img.naturalHeight) < 800) {
+                            setTooSmall((prev) => new Set(prev).add(url));
+                            if (selected === index) setSelected(0);
+                          }
+                        }}
+                      />
                       {index === selected && (
                         <span className="thumb-badge" aria-hidden="true">✓</span>
                       )}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             </div>

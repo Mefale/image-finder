@@ -89,10 +89,17 @@ export class ImageDownloaderService {
       });
 
       const inputBuffer = Buffer.from(response.data);
+      const meta = await sharp(inputBuffer).metadata();
+      const longSide = Math.max(meta.width ?? 0, meta.height ?? 0);
+      if (longSide < 800) {
+        throw new Error(`Imagen muy pequeña (${longSide}px). Elegí otra de mayor resolución.`);
+      }
+
       if (this.isProduction) {
         const fullPublicId = `${folder}/${safeCode}`;
         console.log(`[Cloudinary] Subiendo: public_id="${fullPublicId}" code="${code}"`);
         const outputBuffer = await sharp(inputBuffer)
+          .flatten({ background: "#ffffff" })
           .jpeg({ quality: 100, mozjpeg: true })
           .toBuffer();
 
@@ -142,6 +149,7 @@ export class ImageDownloaderService {
       ensureDir(paths.imagesDir);
       const outputPath = getOutputImagePath(paths.imagesDir, code);
       await sharp(inputBuffer)
+        .flatten({ background: "#ffffff" })
         .jpeg({ quality: 100, mozjpeg: true })
         .toFile(outputPath);
 

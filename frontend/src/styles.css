@@ -154,6 +154,34 @@ p {
   transition: width 0.3s ease;
 }
 
+/* ---------- Goto ---------- */
+.goto-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.goto-input {
+  width: 72px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.goto-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.goto-input::-webkit-inner-spin-button,
+.goto-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
 /* ---------- Messages ---------- */
 .message {
   display: flex;
@@ -268,8 +296,10 @@ p {
 .cloudinary-preview {
   width: 100%;
   height: 220px;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   border-radius: 8px;
+  background: #ffffff;
   border: 1px solid var(--border);
   background: var(--surface-2);
   display: block;
@@ -442,6 +472,7 @@ p {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  background: #ffffff;
   padding: 0;
   background: var(--surface);
   cursor: pointer;
@@ -456,8 +487,10 @@ p {
 .thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   display: block;
+  background: #ffffff;
 }
 
 .thumb.selected {
