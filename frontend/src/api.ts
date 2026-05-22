@@ -1,4 +1,4 @@
-import { ImageResult, Product } from "./types";
+import { Product } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
@@ -15,7 +15,7 @@ export async function fetchImages(limit = 12) {
   if (!res.ok) {
     throw new Error("Failed to load images");
   }
-  return res.json() as Promise<{ product: Product; images: string[] }>; 
+  return res.json() as Promise<{ product: Product; images: string[] }>;
 }
 
 export async function approveImage(imageUrl: string) {
@@ -52,6 +52,12 @@ export async function goToPrevious() {
   return res.json() as Promise<{ current: Product | null; index: number; total: number }>;
 }
 
+export async function resetQueue() {
+  const res = await fetch(`${API_BASE}/products/reset`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to reset queue");
+  return res.json() as Promise<{ ok: boolean }>;
+}
+
 export async function gotoProduct(index: number) {
   const res = await fetch(`${API_BASE}/products/goto`, {
     method: "POST",
@@ -63,12 +69,6 @@ export async function gotoProduct(index: number) {
     throw new Error(data.error || "Error al saltar");
   }
   return res.json() as Promise<{ current: Product | null; index: number; total: number }>;
-}
-
-export async function resetQueue() {
-  const res = await fetch(`${API_BASE}/products/reset`, { method: "POST" });
-  if (!res.ok) throw new Error("Failed to reset queue");
-  return res.json() as Promise<{ ok: boolean }>;
 }
 
 export async function fetchCloudinaryImage(code: string): Promise<string | null> {

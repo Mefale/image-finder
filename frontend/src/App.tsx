@@ -24,10 +24,11 @@ export function App() {
       if (next.current) {
         setCloudinaryUrl("loading");
         const [result, cloudUrl] = await Promise.all([
-          fetchImages(20),
+          fetchImages(12),
           fetchCloudinaryImage(next.current.code)
         ]);
-        setImages(result.images); setTooSmall(new Set());
+        setImages(result.images);
+        setTooSmall(new Set());
         setSelected(0);
         setCloudinaryUrl(cloudUrl);
       } else {
@@ -88,10 +89,11 @@ export function App() {
       if (result.current) {
         setCloudinaryUrl("loading");
         const [imgs, cloudUrl] = await Promise.all([
-          fetchImages(20),
+          fetchImages(12),
           fetchCloudinaryImage(result.current.code)
         ]);
-        setImages(imgs.images); setTooSmall(new Set());
+        setImages(imgs.images);
+        setTooSmall(new Set());
         setSelected(0);
         setCloudinaryUrl(cloudUrl);
       }
@@ -109,8 +111,9 @@ export function App() {
     setLoading(true);
     setMessage(null);
     try {
-      const result = await fetchImages(20);
-      setImages(result.images); setTooSmall(new Set());
+      const result = await fetchImages(12);
+      setImages(result.images);
+      setTooSmall(new Set());
       setSelected(0);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error";
@@ -120,29 +123,18 @@ export function App() {
     }
   };
 
-  const progressPct = progress.total > 0 ? Math.round((progress.index / progress.total) * 100) : 0;
-
   return (
     <>
       <Analytics />
       <div className="page">
         <header className="header">
-          <div className="brand">
-            <div className="brand-mark" aria-hidden="true" />
-            <div>
-              <h1>Image Finder</h1>
-              <p className="subtitle">Revisión de imágenes de producto</p>
-            </div>
+          <div>
+            <h1>Image Finder</h1>
+            <p className="subtitle">Revision de imagenes de producto</p>
           </div>
-          {progress.total > 0 && (
-            <div className="progress">
-              <div className="progress-text">
-                <span className="progress-count">{progress.index} <span className="progress-sep">/</span> {progress.total}</span>
-                <span className="progress-label">productos</span>
-              </div>
-              <div className="progress-bar" aria-hidden="true">
-                <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
-              </div>
+          <div className="progress">
+            <span>Producto {progress.index} / {progress.total}</span>
+            {progress.total > 0 && (
               <form
                 className="goto-form"
                 onSubmit={async (e) => {
@@ -165,7 +157,8 @@ export function App() {
                         fetchImages(12),
                         fetchCloudinaryImage(result.current.code)
                       ]);
-                      setImages(imgs.images); setTooSmall(new Set());
+                      setImages(imgs.images);
+                      setTooSmall(new Set());
                       setSelected(0);
                       setCloudinaryUrl(cloudUrl);
                     }
@@ -186,12 +179,14 @@ export function App() {
                   onChange={(e) => setGotoInput(e.target.value)}
                   disabled={loading}
                 />
-                <button className="btn btn-ghost btn-sm" type="submit" disabled={loading}>
+                <button className="goto-btn" type="submit" disabled={loading}>
                   Ir
                 </button>
               </form>
+            )}
+            {progress.total > 0 && (
               <button
-                className="btn btn-ghost btn-sm btn-danger"
+                className="reset-btn"
                 disabled={loading}
                 onClick={async () => {
                   if (!confirm("¿Resetear la cola? Se pierden todos los productos cargados.")) return;
@@ -211,136 +206,91 @@ export function App() {
               >
                 Resetear
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </header>
 
-        {message && (
-          <div className="message" role="alert">
-            <span className="message-dot" aria-hidden="true" />
-            {message}
-          </div>
-        )}
+        {message && <div className="message">{message}</div>}
 
         {!product && !loading && (
           <div className="empty">
-            <h2>No hay más productos</h2>
-            <p>Cargá la lista por defecto para comenzar la revisión.</p>
-            <button
-              className="btn btn-primary"
-              onClick={async () => {
-                setLoading(true);
-                setMessage(null);
-                try {
-                  await importDefault();
-                  await loadNext();
-                } catch (error) {
-                  setMessage(error instanceof Error ? error.message : "Error");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-            >
+            <p>No hay mas productos</p>
+            <button onClick={async () => {
+              setLoading(true);
+              setMessage(null);
+              try {
+                await importDefault();
+                await loadNext();
+              } catch (error) {
+                setMessage(error instanceof Error ? error.message : "Error");
+              } finally {
+                setLoading(false);
+              }
+            }}>
               Cargar productos
             </button>
           </div>
         )}
 
         {product && (
-          <>
-            <div className="workspace">
-              <aside className="sidebar">
-                <section className="card product-card">
-                  <div className="card-section">
-                    <span className="label">Código</span>
-                    <span className="value mono">{product.code}</span>
-                  </div>
-                  <div className="card-divider" />
-                  <div className="card-section">
-                    <span className="label">Nombre</span>
-                    <span className="value">{product.name}</span>
-                  </div>
-                  <div className="card-divider" />
-                  <div className="card-section">
-                    <span className="label">Imagen actual</span>
-                    <div className="cloudinary-slot">
-                      {cloudinaryUrl === "loading" && (
-                        <div className="cloudinary-state">Buscando…</div>
-                      )}
-                      {cloudinaryUrl === null && (
-                        <div className="cloudinary-state cloudinary-empty">Sin imagen en Cloudinary</div>
-                      )}
-                      {cloudinaryUrl && cloudinaryUrl !== "loading" && (
-                        <img className="cloudinary-preview" src={cloudinaryUrl} alt="Imagen actual en Cloudinary" />
-                      )}
-                    </div>
-                  </div>
-                </section>
-              </aside>
-
-              <section className="gallery-wrap">
-                <div className="gallery-header">
-                  <h2>Candidatos</h2>
-                  <span className="gallery-meta">{images.length} resultados</span>
-                </div>
-                <div className="gallery">
-                  {images.map((url, index) => {
-                    if (tooSmall.has(url)) return null;
-                    return (
-                    <button
-                      key={`${url}-${index}`}
-                      className={index === selected ? "thumb selected" : "thumb"}
-                      onClick={() => setSelected(index)}
-                      type="button"
-                    >
-                      <img
-                        src={url}
-                        alt="Resultado"
-                        loading="lazy"
-                        onLoad={(e) => {
-                          const img = e.currentTarget;
-                          if (Math.max(img.naturalWidth, img.naturalHeight) < 800) {
-                            setTooSmall((prev) => new Set(prev).add(url));
-                            if (selected === index) setSelected(0);
-                          }
-                        }}
-                        onError={() => {
-                          setTooSmall((prev) => new Set(prev).add(url));
-                          if (selected === index) setSelected(0);
-                        }}
-                      />
-                      {index === selected && (
-                        <span className="thumb-badge" aria-hidden="true">✓</span>
-                      )}
-                    </button>
-                    );
-                  })}
-                </div>
-              </section>
-            </div>
-
-            <div className="action-bar-spacer" aria-hidden="true" />
-            <div className="action-bar">
-              <div className="action-bar-inner">
-                {progress.index > 1 && (
-                  <button className="btn btn-ghost" onClick={handlePrevious} disabled={loading}>
-                    ← Anterior
-                  </button>
+          <section className="product">
+            <div className="product-info">
+              <div className="label">Codigo</div>
+              <div className="value">{product.code}</div>
+              <div className="label">Nombre</div>
+              <div className="value">{product.name}</div>
+              <div className="label">Imagen actual</div>
+              <div className="value">
+                {cloudinaryUrl === "loading" && <span className="cloudinary-status">Buscando...</span>}
+                {cloudinaryUrl === null && <span className="cloudinary-status cloudinary-empty">No hay imagen en Cloudinary</span>}
+                {cloudinaryUrl && cloudinaryUrl !== "loading" && (
+                  <img className="cloudinary-preview" src={cloudinaryUrl} alt="Imagen actual en Cloudinary" />
                 )}
-                <button className="btn btn-ghost btn-danger" onClick={handleSkip} disabled={loading}>
-                  Saltar
-                </button>
-                <div className="action-bar-sep" aria-hidden="true" />
-                <button className="btn btn-secondary" onClick={handleRefreshImages} disabled={loading}>
-                  Otra imagen
-                </button>
-                <button className="btn btn-primary btn-lg" onClick={handleApprove} disabled={loading}>
-                  Aprobar
-                </button>
               </div>
             </div>
-          </>
+
+            <div className="actions">
+              <button onClick={handleApprove} disabled={loading}>
+                Aprobar
+              </button>
+              {progress.index > 1 && (
+                <button onClick={handlePrevious} disabled={loading}>
+                  Anterior
+                </button>
+              )}
+              <button onClick={handleRefreshImages} disabled={loading}>
+                Otra imagen
+              </button>
+              <button onClick={handleSkip} disabled={loading}>
+                Saltar
+              </button>
+            </div>
+          </section>
         )}
+
+        <section className="gallery">
+          {images.map((url, index) => {
+            if (tooSmall.has(url)) return null;
+            return (
+              <button
+                key={`${url}-${index}`}
+                className={index === selected ? "thumb selected" : "thumb"}
+                onClick={() => setSelected(index)}
+                type="button"
+              >
+                <img
+                  src={url}
+                  alt="Resultado"
+                  loading="lazy"
+                  onError={() => {
+                    setTooSmall((prev) => new Set(prev).add(url));
+                    if (selected === index) setSelected(0);
+                  }}
+                />
+              </button>
+            );
+          })}
+        </section>
       </div>
     </>
   );
