@@ -65,6 +65,12 @@ class QueueService {
     this.state.set(code, { status: "skipped", skipped: true });
   }
 
+  goToIndex(index: number): boolean {
+    if (index < 0 || index >= this.products.length) return false;
+    this.currentIndex = index;
+    return true;
+  }
+
   getStatus() {
     const completed = Array.from(this.state.values()).filter(
       (item) => item.status === "approved" || item.status === "skipped"

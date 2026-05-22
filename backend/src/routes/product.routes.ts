@@ -10,6 +10,7 @@ import {
   getNextProduct,
   getStatus,
   goToPrevious,
+  gotoProduct,
   importDefaultProducts,
   importProducts,
   resetQueue,
@@ -45,3 +46,4 @@ productRouter.post("/previous", goToPrevious);
 productRouter.get("/status", getStatus);
 productRouter.get("/cloudinary-image", checkCloudinaryImage);
 productRouter.post("/reset", resetQueue);
+productRouter.post("/goto", gotoProduct);

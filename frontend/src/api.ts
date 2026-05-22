@@ -52,6 +52,19 @@ export async function goToPrevious() {
   return res.json() as Promise<{ current: Product | null; index: number; total: number }>;
 }
 
+export async function gotoProduct(index: number) {
+  const res = await fetch(`${API_BASE}/products/goto`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ index })
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error || "Error al saltar");
+  }
+  return res.json() as Promise<{ current: Product | null; index: number; total: number }>;
+}
+
 export async function resetQueue() {
   const res = await fetch(`${API_BASE}/products/reset`, { method: "POST" });
   if (!res.ok) throw new Error("Failed to reset queue");

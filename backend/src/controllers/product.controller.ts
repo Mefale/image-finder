@@ -176,6 +176,25 @@ export async function getStatus(_req: Request, res: Response, next: NextFunction
   }
 }
 
+export async function gotoProduct(req: Request, res: Response, next: NextFunction) {
+  try {
+    const index = Number(req.body?.index);
+    if (isNaN(index)) {
+      res.status(400).json({ error: "Missing index" });
+      return;
+    }
+    const ok = queueService.goToIndex(index);
+    if (!ok) {
+      res.status(400).json({ error: "Índice fuera de rango" });
+      return;
+    }
+    const current = queueService.getCurrent();
+    res.json({ current, index: queueService.getCurrentIndex(), total: queueService.getTotal() });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function resetQueue(_req: Request, res: Response, next: NextFunction) {
   try {
     queueService.setProducts([]);
