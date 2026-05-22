@@ -304,6 +304,10 @@ export function App() {
                             if (selected === index) setSelected(0);
                           }
                         }}
+                        onError={() => {
+                          setTooSmall((prev) => new Set(prev).add(url));
+                          if (selected === index) setSelected(0);
+                        }}
                       />
                       {index === selected && (
                         <span className="thumb-badge" aria-hidden="true">✓</span>
