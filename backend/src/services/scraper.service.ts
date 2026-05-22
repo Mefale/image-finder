@@ -38,7 +38,8 @@ class ScraperService {
       params: {
         q: query,
         first: page * PAGE_SIZE,
-        count: PAGE_SIZE
+        count: PAGE_SIZE,
+        adlt: "strict"
       },
       headers: HEADERS,
       timeout: 10000
