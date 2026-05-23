@@ -89,11 +89,6 @@ export class ImageDownloaderService {
       });
 
       const inputBuffer = Buffer.from(response.data);
-      const meta = await sharp(inputBuffer).metadata();
-      const longSide = Math.max(meta.width ?? 0, meta.height ?? 0);
-      if (longSide < 800) {
-        throw new Error(`Imagen muy pequeña (${longSide}px). Elegí otra de mayor resolución.`);
-      }
 
       if (this.isProduction) {
         const fullPublicId = `${folder}/${safeCode}`;
