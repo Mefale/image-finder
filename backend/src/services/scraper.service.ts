@@ -25,11 +25,31 @@ class ScraperService {
     });
 
     const $ = cheerio.load(response.data as string);
+    const seen = new Set<string>();
     const results: string[] = [];
 
+    // Parse thumbnail URLs from Bing's JSON-embedded anchor elements.
+    // turl is served from th.bing.com (Bing's own CDN), already filtered by SafeSearch.
+    $("a.iusc").each((_idx, element) => {
+      const raw = $(element).attr("m");
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw) as { turl?: string; murl?: string };
+        const url = parsed.turl || parsed.murl;
+        if (url && url.startsWith("http") && !seen.has(url)) {
+          seen.add(url);
+          results.push(url);
+        }
+      } catch {
+        // ignore malformed JSON
+      }
+    });
+
+    // Fallback: also pick up any directly rendered img.mimg thumbnails
     $("img.mimg").each((_idx, element) => {
       const src = $(element).attr("src") || $(element).attr("data-src");
-      if (src && src.startsWith("http")) {
+      if (src && src.startsWith("http") && !seen.has(src)) {
+        seen.add(src);
         results.push(src);
       }
     });
