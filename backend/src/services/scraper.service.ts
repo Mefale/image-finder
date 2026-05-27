@@ -6,7 +6,9 @@ const BING_ASYNC_URL = "https://www.bing.com/images/async";
 const HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  "Accept-Language": "en-US,en;q=0.9,es;q=0.8"
+  "Accept-Language": "en-US,en;q=0.9,es;q=0.8",
+  // Bing's `adlt=strict` query param alone is unreliable on server IPs — the cookie is the authoritative SafeSearch signal.
+  Cookie: "SRCHHPGUSR=ADLT=STRICT&NEWWNDW=1; _EDGE_S=ui=es-es; _EDGE_CD=u=es-es&m=es-es"
 };
 
 class ScraperService {
@@ -18,7 +20,8 @@ class ScraperService {
         q: query,
         first: 0,
         count,
-        adlt: "strict"
+        adlt: "strict",
+        safeSearch: "Strict"
       },
       headers: HEADERS,
       timeout: 10000
