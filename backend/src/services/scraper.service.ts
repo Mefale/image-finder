@@ -1,7 +1,8 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
-const BING_ASYNC_URL = "https://www.bing.com/images/async";
+// /images/async returns only 2-3 mimg thumbnails and zero a.iusc anchors; use the regular search endpoint instead.
+const BING_SEARCH_URL = "https://www.bing.com/images/search";
 
 const HEADERS = {
   "User-Agent":
@@ -15,11 +16,11 @@ class ScraperService {
   async searchImages(query: string, limit: number): Promise<string[]> {
     const count = Math.max(limit, 1);
 
-    const response = await axios.get(BING_ASYNC_URL, {
+    const response = await axios.get(BING_SEARCH_URL, {
       params: {
         q: query,
-        first: 0,
-        count,
+        first: 1,
+        form: "HDRSC2",
         adlt: "strict",
         safeSearch: "Strict"
       },
