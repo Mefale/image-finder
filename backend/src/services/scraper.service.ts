@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
-const BING_ASYNC_URL = "https://www.bing.com/images/async";
+const BING_SEARCH_URL = "https://www.bing.com/images/search";
 
 const HEADERS = {
   "User-Agent":
@@ -13,7 +13,7 @@ class ScraperService {
   async searchImages(query: string, limit: number): Promise<string[]> {
     const count = Math.max(limit, 1);
 
-    const response = await axios.get(BING_ASYNC_URL, {
+    const response = await axios.get(BING_SEARCH_URL, {
       params: {
         q: query,
         first: 0,
@@ -25,11 +25,31 @@ class ScraperService {
     });
 
     const $ = cheerio.load(response.data as string);
+    const seen = new Set<string>();
     const results: string[] = [];
 
+    // Bing serves ~70 a.iusc anchors with JSON-encoded `m` attribute on /images/search.
+    // turl is the Bing-CDN thumbnail (ts*.mm.bing.net) — already SafeSearch-filtered, no external domains.
+    $("a.iusc").each((_idx, element) => {
+      const raw = $(element).attr("m");
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw) as { turl?: string };
+        const url = parsed.turl;
+        if (url && url.startsWith("http") && !seen.has(url)) {
+          seen.add(url);
+          results.push(url);
+        }
+      } catch {
+        // malformed JSON — skip
+      }
+    });
+
+    // Fallback: directly rendered thumbnails when iusc anchors aren't present.
     $("img.mimg").each((_idx, element) => {
       const src = $(element).attr("src") || $(element).attr("data-src");
-      if (src && src.startsWith("http")) {
+      if (src && src.startsWith("http") && !seen.has(src)) {
+        seen.add(src);
         results.push(src);
       }
     });
