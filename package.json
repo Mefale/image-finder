@@ -1,0 +1,12 @@
+{
+  "name": "image-finder",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "tunnel": "node tunnel.js"
+  },
+  "dependencies": {
+    "@ngrok/ngrok": "^1.4.0",
+    "dotenv": "^16.0.0"
+  }
+}

@@ -2,8 +2,21 @@ import { Product } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
+// Ngrok muestra una página de advertencia en requests de browser; este header la saltea
+const extraHeaders: Record<string, string> = import.meta.env.VITE_API_URL
+  ? { "ngrok-skip-browser-warning": "1" }
+  : {};
+
+async function apiFetch(url: string, init: RequestInit = {}): Promise<Response> {
+  const res = await fetch(url, {
+    ...init,
+    headers: { ...extraHeaders, ...(init.headers as Record<string, string> | undefined) },
+  });
+  return res;
+}
+
 export async function fetchNextProduct() {
-  const res = await fetch(`${API_BASE}/products/next`);
+  const res = await apiFetch(`${API_BASE}/products/next`);
   if (!res.ok) {
     throw new Error("Failed to load product");
   }
@@ -11,7 +24,7 @@ export async function fetchNextProduct() {
 }
 
 export async function fetchImages(limit = 12) {
-  const res = await fetch(`${API_BASE}/products/images?limit=${limit}`);
+  const res = await apiFetch(`${API_BASE}/products/images?limit=${limit}`);
   if (!res.ok) {
     throw new Error("Failed to load images");
   }
@@ -19,7 +32,7 @@ export async function fetchImages(limit = 12) {
 }
 
 export async function approveImage(imageUrl: string) {
-  const res = await fetch(`${API_BASE}/products/approve`, {
+  const res = await apiFetch(`${API_BASE}/products/approve`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ imageUrl })
@@ -31,7 +44,7 @@ export async function approveImage(imageUrl: string) {
 }
 
 export async function skipProduct() {
-  const res = await fetch(`${API_BASE}/products/skip`, { method: "POST" });
+  const res = await apiFetch(`${API_BASE}/products/skip`, { method: "POST" });
   if (!res.ok) {
     throw new Error("Failed to skip product");
   }
@@ -39,13 +52,13 @@ export async function skipProduct() {
 }
 
 export async function importDefault() {
-  const res = await fetch(`${API_BASE}/products/import-default`, { method: "POST" });
+  const res = await apiFetch(`${API_BASE}/products/import-default`, { method: "POST" });
   if (!res.ok) throw new Error("Failed to import default products");
   return res.json() as Promise<{ total: number }>;
 }
 
 export async function goToPrevious() {
-  const res = await fetch(`${API_BASE}/products/previous`, { method: "POST" });
+  const res = await apiFetch(`${API_BASE}/products/previous`, { method: "POST" });
   if (!res.ok) {
     throw new Error("Failed to go to previous product");
   }
@@ -53,13 +66,13 @@ export async function goToPrevious() {
 }
 
 export async function resetQueue() {
-  const res = await fetch(`${API_BASE}/products/reset`, { method: "POST" });
+  const res = await apiFetch(`${API_BASE}/products/reset`, { method: "POST" });
   if (!res.ok) throw new Error("Failed to reset queue");
   return res.json() as Promise<{ ok: boolean }>;
 }
 
 export async function gotoProduct(index: number) {
-  const res = await fetch(`${API_BASE}/products/goto`, {
+  const res = await apiFetch(`${API_BASE}/products/goto`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ index })
@@ -72,7 +85,7 @@ export async function gotoProduct(index: number) {
 }
 
 export async function fetchCloudinaryImage(code: string): Promise<string | null> {
-  const res = await fetch(`${API_BASE}/products/cloudinary-image?code=${encodeURIComponent(code)}`);
+  const res = await apiFetch(`${API_BASE}/products/cloudinary-image?code=${encodeURIComponent(code)}`);
   if (!res.ok) {
     return null;
   }
