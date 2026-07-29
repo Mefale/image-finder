@@ -72,9 +72,13 @@ export async function getImages(req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    const limit = Number(req.query.limit) || 12;
+    const requested = Number(req.query.limit) || 40;
+    const limit = Math.min(Math.max(requested, 1), 140);
     const images = await scraperService.searchImages(current.name, limit);
-    queueService.cacheImages(current.code, images);
+    queueService.cacheImages(
+      current.code,
+      images.map((image) => image.url)
+    );
 
     res.json({ product: current, images });
   } catch (error) {
@@ -96,9 +100,12 @@ export async function approveImage(req: Request, res: Response, next: NextFuncti
       return;
     }
 
+    const fallbackUrl = String(req.body?.fallbackUrl || "").trim() || undefined;
+
     const result = await imageDownloaderService.downloadResizeAndConvert({
       imageUrl,
-      code: current.code
+      code: current.code,
+      fallbackUrl
     });
     queueService.markApproved(current.code, imageUrl);
     queueService.advance();

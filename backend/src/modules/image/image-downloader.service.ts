@@ -68,10 +68,43 @@ export class ImageDownloaderService {
     }
   }
 
+  private async downloadBuffer(url: string): Promise<Buffer> {
+    const response = await axios.get<ArrayBuffer>(url, {
+      responseType: "arraybuffer",
+      timeout: 15000,
+      maxContentLength: MAX_IMAGE_BYTES,
+      validateStatus: (status) => status >= 200 && status < 300,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
+      }
+    });
+
+    return Buffer.from(response.data);
+  }
+
+  /**
+   * Muchos sitios responden 403 al hotlinking de la imagen original. En ese caso
+   * caemos al thumbnail del CDN de Bing, que siempre es descargable.
+   */
+  private async fetchImageBuffer(imageUrl: string, fallbackUrl?: string): Promise<Buffer> {
+    try {
+      return await this.downloadBuffer(imageUrl);
+    } catch (error) {
+      if (!fallbackUrl || fallbackUrl === imageUrl) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.log(`[Download] Original falló (${message}), usando fallback: ${fallbackUrl}`);
+      return this.downloadBuffer(fallbackUrl);
+    }
+  }
+
   async downloadResizeAndConvert(
     request: ImageDownloadRequest
   ): Promise<ImageDownloadResult> {
-    const { imageUrl, code } = request;
+    const { imageUrl, code, fallbackUrl } = request;
 
     if (!imageUrl || !code) {
       throw new Error("Missing imageUrl or code");
@@ -81,14 +114,7 @@ export class ImageDownloaderService {
     const folder = "mefale/products";
 
     try {
-      const response = await axios.get<ArrayBuffer>(imageUrl, {
-        responseType: "arraybuffer",
-        timeout: 15000,
-        maxContentLength: MAX_IMAGE_BYTES,
-        validateStatus: (status) => status >= 200 && status < 300
-      });
-
-      const inputBuffer = Buffer.from(response.data);
+      const inputBuffer = await this.fetchImageBuffer(imageUrl, fallbackUrl);
 
       if (this.isProduction) {
         const fullPublicId = `${folder}/${safeCode}`;

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { approveImage, fetchCloudinaryImage, fetchImages, fetchNextProduct, goToPrevious, gotoProduct, importDefault, resetQueue, skipProduct } from "./api";
+import type { ImageResult } from "./api";
 import { Product } from "./types";
 
 export function App() {
   const [product, setProduct] = useState<Product | null>(null);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<ImageResult[]>([]);
   const [selected, setSelected] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export function App() {
       if (next.current) {
         setCloudinaryUrl("loading");
         const [result, cloudUrl] = await Promise.all([
-          fetchImages(12),
+          fetchImages(),
           fetchCloudinaryImage(next.current.code)
         ]);
         setImages(result.images);
@@ -48,14 +49,15 @@ export function App() {
   }, []);
 
   const handleApprove = async () => {
-    if (!images[selected]) {
+    const image = images[selected];
+    if (!image) {
       setMessage("Selecciona una imagen");
       return;
     }
     setLoading(true);
     setMessage(null);
     try {
-      await approveImage(images[selected]);
+      await approveImage(image.url, image.thumbnail);
       await loadNext();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error";
@@ -89,7 +91,7 @@ export function App() {
       if (result.current) {
         setCloudinaryUrl("loading");
         const [imgs, cloudUrl] = await Promise.all([
-          fetchImages(12),
+          fetchImages(),
           fetchCloudinaryImage(result.current.code)
         ]);
         setImages(imgs.images);
@@ -111,7 +113,7 @@ export function App() {
     setLoading(true);
     setMessage(null);
     try {
-      const result = await fetchImages(12);
+      const result = await fetchImages();
       setImages(result.images);
       setTooSmall(new Set());
       setSelected(0);
@@ -154,7 +156,7 @@ export function App() {
                     if (result.current) {
                       setCloudinaryUrl("loading");
                       const [imgs, cloudUrl] = await Promise.all([
-                        fetchImages(12),
+                        fetchImages(),
                         fetchCloudinaryImage(result.current.code)
                       ]);
                       setImages(imgs.images);
@@ -269,21 +271,21 @@ export function App() {
         )}
 
         <section className="gallery">
-          {images.map((url, index) => {
-            if (tooSmall.has(url)) return null;
+          {images.map((image, index) => {
+            if (tooSmall.has(image.url)) return null;
             return (
               <button
-                key={`${url}-${index}`}
+                key={`${image.url}-${index}`}
                 className={index === selected ? "thumb selected" : "thumb"}
                 onClick={() => setSelected(index)}
                 type="button"
               >
                 <img
-                  src={url}
+                  src={image.thumbnail}
                   alt="Resultado"
                   loading="lazy"
                   onError={() => {
-                    setTooSmall((prev) => new Set(prev).add(url));
+                    setTooSmall((prev) => new Set(prev).add(image.url));
                     if (selected === index) setSelected(0);
                   }}
                 />
