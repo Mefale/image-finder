@@ -23,19 +23,24 @@ export async function fetchNextProduct() {
   return res.json() as Promise<{ current: Product | null; index: number; total: number }>;
 }
 
-export async function fetchImages(limit = 12) {
+export type ImageResult = {
+  url: string;
+  thumbnail: string;
+};
+
+export async function fetchImages(limit = 40) {
   const res = await apiFetch(`${API_BASE}/products/images?limit=${limit}`);
   if (!res.ok) {
     throw new Error("Failed to load images");
   }
-  return res.json() as Promise<{ product: Product; images: string[] }>;
+  return res.json() as Promise<{ product: Product; images: ImageResult[] }>;
 }
 
-export async function approveImage(imageUrl: string) {
+export async function approveImage(imageUrl: string, fallbackUrl?: string) {
   const res = await apiFetch(`${API_BASE}/products/approve`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ imageUrl })
+    body: JSON.stringify({ imageUrl, fallbackUrl })
   });
   if (!res.ok) {
     throw new Error("Failed to approve image");

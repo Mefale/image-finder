@@ -5,6 +5,7 @@
   "type": "commonjs",
   "main": "dist/server.js",
   "scripts": {
+    "prestart": "npm run build",
     "dev": "node -r ts-node/register src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
